@@ -70,6 +70,7 @@ class TimerService : Service() {
         serviceScope.launch {
             timerManager.timerState.collect { state ->
                 if (state is TimerState.Finished || state is TimerState.Idle) {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
                     stopSelf()
                 } else {
                     updateNotification(state)

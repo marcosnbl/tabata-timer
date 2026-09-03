@@ -64,13 +64,18 @@ class TimerManager @Inject constructor(
         startRound: Int = 1,
         startState: TimerState? = null
     ) {
-        // Warmup (only if starting from beginning)
-        if (startSet == 1 && startRound == 1 && startState == null && config.warmupSeconds > 0) {
-            tick(TimerState.Preparing(config, config.warmupSeconds, 1, 1), "Get ready")
-        }
-
-        // Handle resuming from a specific state if provided
         var resumeState = startState
+
+        // Warmup
+        if (resumeState == null || resumeState is TimerState.Preparing) {
+            if (startSet == 1 && startRound == 1) {
+                val seconds = (resumeState as? TimerState.Preparing)?.remainingSeconds ?: config.warmupSeconds
+                if (seconds > 0) {
+                    tick(TimerState.Preparing(config, seconds, 1, 1), if (resumeState == null) "Get ready" else null)
+                }
+            }
+            resumeState = null
+        }
 
         for (set in startSet..config.sets) {
             val roundRange = if (set == startSet) startRound..config.rounds else 1..config.rounds
@@ -130,6 +135,9 @@ class TimerManager @Inject constructor(
         var remaining = state.remainingSeconds
         startMessage?.let { soundPlayer.playSound(it) }
 
+        val startTime = System.currentTimeMillis()
+        val totalSeconds = remaining
+
         while (remaining > 0 && !skipRequested) {
             val currentState = when (state) {
                 is TimerState.Preparing -> state.copy(remainingSeconds = remaining)
@@ -143,8 +151,13 @@ class TimerManager @Inject constructor(
                 soundPlayer.playSound(remaining.toString())
             }
 
-            delay(1000)
-            remaining--
+            val elapsed = (System.currentTimeMillis() - startTime) / 1000
+            val nextRemaining = (totalSeconds - (elapsed + 1)).toInt().coerceAtLeast(0)
+            
+            val sleepTime = 1000 - ((System.currentTimeMillis() - startTime) % 1000)
+            delay(sleepTime)
+            
+            remaining = nextRemaining
         }
         skipRequested = false
     }
