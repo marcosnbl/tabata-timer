@@ -22,7 +22,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.tabata_timer.data.service.TimerService
 import com.example.tabata_timer.domain.timer.TimerManager
 import com.example.tabata_timer.ui.config.CreateWorkoutScreen
-import com.example.tabata_timer.ui.execution.MainTimerScreen
 import com.example.tabata_timer.ui.execution.WorkoutExecutionScreen
 import com.example.tabata_timer.ui.theme.TabatatimerTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -82,7 +81,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("execution") {
-                            MainTimerScreen(
+                            WorkoutExecutionScreen(
                                 onWorkoutCancelled = {
                                     navController.popBackStack()
                                 }
