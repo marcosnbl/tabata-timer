@@ -13,17 +13,21 @@ import javax.inject.Singleton
 class TimerManager @Inject constructor(
     private val soundPlayer: SoundPlayer
 ) {
+    // Visible for testing
+    internal var timeProvider: () -> Long = { System.currentTimeMillis() }
+    internal var ioDispatcher: CoroutineDispatcher = Dispatchers.Default
+
     private val _timerState = MutableStateFlow<TimerState>(TimerState.Idle())
     val timerState = _timerState.asStateFlow()
 
     private var timerJob: Job? = null
-    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val scope = CoroutineScope(SupervisorJob())
     private var skipRequested = false
 
     fun startWorkout(config: WorkoutConfig) {
         timerJob?.cancel()
         skipRequested = false
-        timerJob = scope.launch {
+        timerJob = scope.launch(ioDispatcher) {
             runWorkout(config)
         }
     }
@@ -135,7 +139,7 @@ class TimerManager @Inject constructor(
         var remaining = state.remainingSeconds
         startMessage?.let { soundPlayer.playSound(it) }
 
-        val startTime = System.currentTimeMillis()
+        val startTime = timeProvider()
         val totalSeconds = remaining
 
         while (remaining > 0 && !skipRequested) {
@@ -151,10 +155,10 @@ class TimerManager @Inject constructor(
                 soundPlayer.playSound(remaining.toString())
             }
 
-            val elapsed = (System.currentTimeMillis() - startTime) / 1000
+            val elapsed = (timeProvider() - startTime) / 1000
             val nextRemaining = (totalSeconds - (elapsed + 1)).toInt().coerceAtLeast(0)
             
-            val sleepTime = 1000 - ((System.currentTimeMillis() - startTime) % 1000)
+            val sleepTime = 1000 - ((timeProvider() - startTime) % 1000)
             delay(sleepTime)
             
             remaining = nextRemaining
