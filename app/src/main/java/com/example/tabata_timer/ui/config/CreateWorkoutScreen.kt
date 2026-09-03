@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,16 +27,25 @@ fun CreateWorkoutScreen(
     viewModel: WorkoutConfigViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
-                title = { Text("Create Workout", fontWeight = FontWeight.Bold) },
+            LargeTopAppBar(
+                title = { 
+                    Text(
+                        "Tabata Timer", 
+                        fontWeight = FontWeight.Black,
+                        style = MaterialTheme.typography.headlineLarge
+                    ) 
+                },
                 actions = {
                     IconButton(onClick = { viewModel.saveWorkout() }) {
                         Icon(Icons.Default.Save, contentDescription = "Save")
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {
@@ -54,10 +64,11 @@ fun CreateWorkoutScreen(
                     )
                     onStartWorkout(config)
                 },
-                icon = { Icon(Icons.Default.PlayArrow, contentDescription = null) },
-                text = { Text("Start Workout") },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                icon = { Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(32.dp)) },
+                text = { Text("START", fontWeight = FontWeight.Bold, letterSpacing = 2.sp) },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                elevation = FloatingActionButtonDefaults.elevation(8.dp)
             )
         }
     ) { paddingValues ->
@@ -65,11 +76,21 @@ fun CreateWorkoutScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
+                Spacer(modifier = Modifier.height(8.dp))
                 TotalDurationCard(uiState.totalTimeSeconds)
+            }
+
+            item {
+                Text(
+                    "Workout Configuration",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
 
             item {
@@ -147,28 +168,33 @@ fun TotalDurationCard(totalSeconds: Int) {
     val minutes = totalSeconds / 60
     val seconds = totalSeconds % 60
     
-    Card(
+    ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary
-        )
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        ),
+        shape = MaterialTheme.shapes.extraLarge
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier
+                .padding(32.dp)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Total Duration",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                text = "TOTAL WORKOUT TIME",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                letterSpacing = 2.sp
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds),
-                style = MaterialTheme.typography.displayMedium.copy(
+                style = MaterialTheme.typography.displayLarge.copy(
                     fontWeight = FontWeight.Black,
-                    fontSize = 48.sp
-                ),
-                color = MaterialTheme.colorScheme.onPrimary
+                    fontSize = 64.sp
+                )
             )
         }
     }

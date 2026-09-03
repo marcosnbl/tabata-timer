@@ -5,6 +5,7 @@ import android.view.WindowManager
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.tabata_timer.domain.model.TimerState
+import com.example.tabata_timer.ui.theme.*
 import kotlinx.coroutines.delay
 import java.util.Locale
 
@@ -46,10 +48,10 @@ fun WorkoutExecutionScreen(
 
     val backgroundColor by animateColorAsState(
         targetValue = when (state) {
-            is TimerState.Preparing -> Color(0xFFFFA500) // Orange
-            is TimerState.Working -> Color(0xFF4CAF50) // Green
-            is TimerState.Resting -> Color(0xFF2196F3) // Blue
-            is TimerState.Paused -> Color(0xFF9E9E9E) // Gray
+            is TimerState.Preparing -> PrepColor
+            is TimerState.Working -> WorkColor
+            is TimerState.Resting -> RestColor
+            is TimerState.Paused -> PauseColor
             else -> MaterialTheme.colorScheme.background
         },
         label = "BackgroundColorAnimation"
@@ -74,7 +76,10 @@ fun WorkoutExecutionScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             // Header Info
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(top = 16.dp)
+            ) {
                 Text(
                     text = when (state) {
                         is TimerState.Preparing -> "GET READY"
@@ -84,19 +89,30 @@ fun WorkoutExecutionScreen(
                         is TimerState.Finished -> "FINISHED"
                         else -> ""
                     },
-                    style = MaterialTheme.typography.displaySmall.copy(
+                    style = MaterialTheme.typography.displayMedium.copy(
                         fontWeight = FontWeight.Black,
-                        letterSpacing = 4.sp
+                        letterSpacing = 6.sp
                     ),
                     color = contentColor
                 )
                 
+                Spacer(modifier = Modifier.height(8.dp))
+
                 if (state !is TimerState.Idle && state !is TimerState.Finished) {
-                    Text(
-                        text = "Round ${state.currentRound}/${state.config?.rounds ?: 0} • Set ${state.currentSet}/${state.config?.sets ?: 0}",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = contentColor.copy(alpha = 0.8f)
-                    )
+                    Surface(
+                        color = contentColor.copy(alpha = 0.2f),
+                        shape = MaterialTheme.shapes.extraLarge
+                    ) {
+                        Text(
+                            text = "ROUND ${state.currentRound}/${state.config?.rounds ?: 0}  •  SET ${state.currentSet}/${state.config?.sets ?: 0}",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            ),
+                            color = contentColor,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    }
                 }
             }
 
@@ -131,10 +147,11 @@ fun WorkoutExecutionScreen(
 
                 CircularProgressIndicator(
                     progress = { progress },
-                    modifier = Modifier.size(300.dp),
-                    strokeWidth = 12.dp,
+                    modifier = Modifier.size(320.dp),
+                    strokeWidth = 14.dp,
                     color = contentColor,
-                    trackColor = contentColor.copy(alpha = 0.2f)
+                    trackColor = contentColor.copy(alpha = 0.2f),
+                    strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
                 )
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -143,8 +160,9 @@ fun WorkoutExecutionScreen(
                     Text(
                         text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds),
                         style = MaterialTheme.typography.displayLarge.copy(
-                            fontSize = 80.sp,
-                            fontWeight = FontWeight.Bold
+                            fontSize = 100.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = (-2).sp
                         ),
                         color = contentColor
                     )
@@ -153,52 +171,62 @@ fun WorkoutExecutionScreen(
 
             // Controls
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
+                Surface(
                     onClick = {
                         viewModel.stop()
                         onWorkoutCancelled()
                     },
-                    modifier = Modifier.size(64.dp)
+                    color = contentColor.copy(alpha = 0.2f),
+                    shape = CircleShape,
+                    modifier = Modifier.size(72.dp)
                 ) {
-                    Icon(
-                        Icons.Default.Close,
-                        contentDescription = "Cancel",
-                        tint = contentColor,
-                        modifier = Modifier.size(32.dp)
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Cancel",
+                            tint = contentColor,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
 
-                FloatingActionButton(
+                LargeFloatingActionButton(
                     onClick = {
                         if (state is TimerState.Paused) viewModel.resume()
                         else viewModel.pause()
                     },
                     containerColor = contentColor,
                     contentColor = backgroundColor,
-                    shape = MaterialTheme.shapes.extraLarge,
-                    modifier = Modifier.size(80.dp)
+                    shape = CircleShape,
+                    modifier = Modifier.size(100.dp)
                 ) {
                     Icon(
                         if (state is TimerState.Paused) Icons.Default.PlayArrow else Icons.Default.Pause,
                         contentDescription = if (state is TimerState.Paused) "Resume" else "Pause",
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(48.dp)
                     )
                 }
 
-                IconButton(
+                Surface(
                     onClick = { viewModel.skip() },
-                    modifier = Modifier.size(64.dp)
+                    color = contentColor.copy(alpha = 0.2f),
+                    shape = CircleShape,
+                    modifier = Modifier.size(72.dp)
                 ) {
-                    Icon(
-                        Icons.Default.SkipNext,
-                        contentDescription = "Skip",
-                        tint = contentColor,
-                        modifier = Modifier.size(32.dp)
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Default.SkipNext,
+                            contentDescription = "Skip",
+                            tint = contentColor,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
             }
         }

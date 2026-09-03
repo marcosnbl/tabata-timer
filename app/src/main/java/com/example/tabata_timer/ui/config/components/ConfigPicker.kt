@@ -20,39 +20,48 @@ fun ConfigPicker(
     onDecrement: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    ElevatedCard(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
+        shape = MaterialTheme.shapes.large
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
+                    text = label.uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
                 )
                 Text(
                     text = value,
                     style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp
-                    )
+                        fontWeight = FontWeight.Black,
+                        fontSize = 28.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onDecrement) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilledTonalIconButton(
+                    onClick = onDecrement,
+                    modifier = Modifier.size(48.dp)
+                ) {
                     Icon(Icons.Default.Remove, contentDescription = "Decrease")
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                IconButton(onClick = onIncrement) {
+                FilledTonalIconButton(
+                    onClick = onIncrement,
+                    modifier = Modifier.size(48.dp)
+                ) {
                     Icon(Icons.Default.Add, contentDescription = "Increase")
                 }
             }
